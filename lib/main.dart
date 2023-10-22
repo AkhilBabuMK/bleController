@@ -1,7 +1,6 @@
 import 'package:customeble/ble_controller.dart';
-import 'package:flutter/material.dart';
-// import 'package:flutter_ble/ble_controller.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void main() {
@@ -11,7 +10,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -52,32 +50,41 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 15,
                 ),
                 StreamBuilder<List<ScanResult>>(
-                    stream: controller.scanResults,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              final data = snapshot.data![index];
-                              return Card(
-                                elevation: 2,
-                                child: ListTile(
-                                  title: Text(data.device.name),
-                                  subtitle: Text(data.device.id.id),
-                                  trailing: Text(data.rssi.toString()),
-                                ),
-                              );
-                            });
-                      } else {
-                        return Center(
-                          child: Text("No Device Found"),
-                        );
-                      }
-                    }),
+                  stream: controller.scanResults,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final data = snapshot.data![index];
+                          final deviceName = data.device.name;
+                          final deviceId = data.device.id.id;
+                          final rssi = data.rssi.toString();
+                          final iBeaconData =
+                              parseIBeaconData(data.advertisementData);
+
+                          return Card(
+                            elevation: 2,
+                            child: ListTile(
+                              title: Text(deviceName),
+                              subtitle:
+                                  Text('$deviceId - RSSI: $rssi\n$iBeaconData'),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      return Center(
+                        child: Text("No Device Found"),
+                      );
+                    }
+                  },
+                ),
                 ElevatedButton(
-                    onPressed: () => controller.scanDevices(),
-                    child: Text("Scan")),
+                  onPressed: () => controller.scanDevices(),
+                  child: Text("Scan"),
+                ),
                 SizedBox(
                   height: 15,
                 ),
@@ -87,5 +94,16 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
     );
+  }
+
+  String parseIBeaconData(AdvertisementData data) {
+    // Assuming iBeacon data follows a specific format
+    if (data.manufacturerData.containsKey(0x004C)) {
+      final iBeaconBytes = data.manufacturerData[0x004C];
+      // Extract and format iBeacon data as needed
+      // iBeacon data typically includes proximity UUID, major, minor, and other information.
+      return 'iBeacon Data: ${iBeaconBytes.toString()}';
+    }
+    return 'No iBeacon Data';
   }
 }
