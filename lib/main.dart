@@ -1,4 +1,3 @@
-// main.dart
 import 'package:customeble/ble_controller.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +32,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // Initialize a set to store unique iBeacon data
+  Set<Map<String, dynamic>> iBeaconDataSet = {};
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,17 +70,30 @@ class _MyHomePageState extends State<MyHomePage> {
                               final deviceName = data.device.name;
                               final deviceId = data.device.id.id;
                               final rssi = data.rssi.toString();
-                              final iBeaconData =
-                                  parseIBeaconData(data.advertisementData);
+                              final iBeaconData = parseIBeaconData(
+                                  data.advertisementData,
+                                  deviceName,
+                                  deviceId,
+                                  rssi);
 
-                              return Card(
-                                elevation: 2,
-                                child: ListTile(
-                                  title: Text(deviceName),
-                                  subtitle: Text(
-                                      '$deviceId - RSSI: $rssi\n$iBeaconData'),
-                                ),
-                              );
+                              if (iBeaconData != null) {
+                                iBeaconDataSet.add(iBeaconData);
+                              }
+
+                              // Only create ListTile if iBeaconData is not null
+                              if (iBeaconData != null) {
+                                return Card(
+                                  elevation: 2,
+                                  child: ListTile(
+                                    title: Text(deviceName),
+                                    subtitle: Text(
+                                        '$deviceId - RSSI: $rssi\n${iBeaconData["iBeaconData"]}'),
+                                  ),
+                                );
+                              } else {
+                                return SizedBox
+                                    .shrink(); // Return an empty widget if iBeaconData is null
+                              }
                             }).toList(),
                           ),
                         ),
@@ -98,9 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Rest of the code remains the same...
-
-  String parseIBeaconData(AdvertisementData data) {
+  Map<String, dynamic>? parseIBeaconData(
+      AdvertisementData data, String deviceName, String deviceId, String rssi) {
     if (data.manufacturerData.containsKey(76)) {
       final iBeaconBytes = data.manufacturerData[76];
       print(iBeaconBytes);
@@ -115,10 +129,16 @@ class _MyHomePageState extends State<MyHomePage> {
         final minorValue = bytesToInt(minor);
         print(majorValue);
         print(minorValue);
-        return 'UUID: $formattedUUID Major: $majorValue Minor: $minorValue';
+        return {
+          'deviceName': deviceName,
+          'deviceId': deviceId,
+          'rssi': rssi,
+          'iBeaconData':
+              'UUID: $formattedUUID Major: $majorValue Minor: $minorValue',
+        };
       }
     }
-    return 'No iBeacon Data';
+    return null;
   }
 
   String uuidToString(List<int> bytes) {
