@@ -1,3 +1,4 @@
+// ble_controller.dart
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -10,15 +11,11 @@ class BleController extends GetxController {
     if (blePermission.isDenied) {
       if (await Permission.bluetoothScan.request().isGranted) {
         if (await Permission.bluetoothConnect.request().isGranted) {
-          flutterBlue.startScan(timeout: Duration(seconds: 10));
-
-          flutterBlue.stopScan();
+          flutterBlue.startScan();
         }
       }
     } else {
-      flutterBlue.startScan(timeout: Duration(seconds: 10));
-
-      flutterBlue.stopScan();
+      flutterBlue.startScan();
     }
   }
 

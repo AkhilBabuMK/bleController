@@ -1,3 +1,4 @@
+// main.dart
 import 'package:customeble/ble_controller.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +97,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  // Rest of the code remains the same...
 
   String parseIBeaconData(AdvertisementData data) {
     if (data.manufacturerData.containsKey(76)) {
