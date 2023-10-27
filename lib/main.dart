@@ -49,30 +49,38 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(
                   height: 15,
                 ),
+                ElevatedButton(
+                  onPressed: () => controller.scanDevices(),
+                  child: Text("Scan"),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
                 StreamBuilder<List<ScanResult>>(
                   stream: controller.scanResults,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          final data = snapshot.data![index];
-                          final deviceName = data.device.name;
-                          final deviceId = data.device.id.id;
-                          final rssi = data.rssi.toString();
-                          final iBeaconData =
-                              parseIBeaconData(data.advertisementData);
+                      return Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: snapshot.data!.map((data) {
+                              final deviceName = data.device.name;
+                              final deviceId = data.device.id.id;
+                              final rssi = data.rssi.toString();
+                              final iBeaconData =
+                                  parseIBeaconData(data.advertisementData);
 
-                          return Card(
-                            elevation: 2,
-                            child: ListTile(
-                              title: Text(deviceName),
-                              subtitle:
-                                  Text('$deviceId - RSSI: $rssi\n$iBeaconData'),
-                            ),
-                          );
-                        },
+                              return Card(
+                                elevation: 2,
+                                child: ListTile(
+                                  title: Text(deviceName),
+                                  subtitle: Text(
+                                      '$deviceId - RSSI: $rssi\n$iBeaconData'),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
                       );
                     } else {
                       return Center(
@@ -80,13 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
                     }
                   },
-                ),
-                ElevatedButton(
-                  onPressed: () => controller.scanDevices(),
-                  child: Text("Scan"),
-                ),
-                SizedBox(
-                  height: 15,
                 ),
               ],
             ),
@@ -101,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
       final iBeaconBytes = data.manufacturerData[76];
       print(iBeaconBytes);
 
-      if (iBeaconBytes != null) {
+      if (iBeaconBytes != null && iBeaconBytes.length >= 22) {
         final uuid = iBeaconBytes.sublist(2, 18);
         final major = iBeaconBytes.sublist(18, 20);
         final minor = iBeaconBytes.sublist(20, 22);
